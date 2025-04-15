@@ -1,46 +1,88 @@
 const Event = require("../../models/eventModel");
 
 const createEvent = async (req, res) => {
+  console.log("reached");
   try {
     const event = new Event({ ...req.body, createdBy: req.user.id });
     await event.save();
     res.status(201).json({ message: "Event created", event });
   } catch (err) {
-    res.status(500).json({ message: "Error creating event" });
+    console.log(err);
+    return res.status(500).json({ message: "Error creating event" });
   }
 };
 
 const getAllEvents = async (req, res) => {
   try {
-    const events = await Event.find();
+    const adminId = req.user.id; // from the token (decoded earlier)
+
+    const events = await Event.find({ createdBy: adminId });
+
     res.status(200).json(events);
   } catch (error) {
-    res.status(500).json({ message: "Error fetching events" });
+    console.error("Failed to fetch events:", error);
+    res
+      .status(500)
+      .json({ message: "Something went wrong while fetching events." });
   }
 };
 
 const updateEvent = async (req, res) => {
   try {
-    const event = await Event.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-    });
+    const adminId = req.user.id;
+    const eventId = req.params.id;
+
+    const event = await Event.findById(eventId);
+
     if (!event) {
       return res.status(404).json({ message: "Event not found" });
     }
-    res.status(200).json(event);
+
+    // 3. Check ownership
+    if (event.createdBy.toString() !== adminId) {
+      return res
+        .status(403)
+        .json({ message: "You are not authorized to update this event" });
+    }
+
+    // 4. Update event
+    const updatedEvent = await Event.findByIdAndUpdate(eventId, req.body, {
+      new: true,
+    });
+
+    res.status(200).json(updatedEvent);
   } catch (err) {
+    console.error("Update failed:", err);
     res.status(500).json({ message: "Error updating event" });
   }
 };
 
 const deleteEvent = async (req, res) => {
   try {
-    const event = await Event.findByIdAndDelete(req.params.id);
+    const adminId = req.user.id;
+    const eventId = req.params.id;
+
+    // 1. Find the event
+    const event = await Event.findById(eventId);
+
+    // 2. If event not found
     if (!event) {
       return res.status(404).json({ message: "Event not found" });
     }
-    res.status(200).json({ message: "Event deleted" });
+
+    // 3. Check if the event belongs to the logged-in admin
+    if (event.createdBy.toString() !== adminId) {
+      return res
+        .status(403)
+        .json({ message: "You are not authorized to delete this event" });
+    }
+
+    // 4. Delete the event
+    await Event.findByIdAndDelete(eventId);
+
+    res.status(200).json({ message: "Event deleted successfully" });
   } catch (err) {
+    console.error("Delete error:", err);
     res.status(500).json({ message: "Error deleting event" });
   }
 };

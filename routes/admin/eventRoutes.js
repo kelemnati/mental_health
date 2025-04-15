@@ -8,7 +8,7 @@ const {
   deleteEvent,
 } = require("../../controllers/admin/eventController");
 
-const { verifyToken, isAdmin } = require("../../middleware/authMiddleware");
+const { verifyToken, isAdmin } = require("../../middlewares/authMiddleware");
 
 router.post("/", verifyToken, isAdmin, createEvent);
 router.get("/", verifyToken, isAdmin, getAllEvents);

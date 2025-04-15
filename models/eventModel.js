@@ -4,7 +4,7 @@ const eventSchema = new mongoose.Schema(
   {
     title: String,
     description: String,
-    evenType: { type: String, enum: ["free", "paid"], required: true },
+    eventType: { type: String, enum: ["free", "paid"], required: true },
     seatsAvailable: Number,
     date: Date,
     location: String,
