@@ -72,13 +72,24 @@ npm install
 ├── config/
 │   └── db_connect.js
 ├── controllers/
-│   └── admin/
+│   ├── admin/
+│   │   ├── authController.js
+│   │   └── eventController.js
+│   └── user/
+│       └── userAuthController.js
+├── middlewares/
+│   └── authMiddleware.js
 ├── models/
-│   └── User.js
+│   ├── eventModel.js
+│   └── userModel.js
 ├── routes/
-│   └── admin/
-│       └── adminAuthRoutes.js
-├── app.js
+│   ├── admin/
+│   │   ├── adminAuthRoutes.js
+│   │   └── eventRoutes.js
+│   └── user/
+│       └── userAuthRoutes.js
+├── .env
+├── server.js
 └── README.md
 ```
 
