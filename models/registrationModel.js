@@ -14,6 +14,13 @@ const registrationSchema = new mongoose.Schema(
         return !this.isAnonymous;
       },
     },
+    realUserId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: function () {
+        return this.isAnonymous;
+      },
+    },
     isAnonymous: {
       type: Boolean,
       default: false,

@@ -5,18 +5,27 @@ const generateAnonymousName = () => {
   return "user" + Math.floor(1000 + Math.random() * 9000);
 };
 
+const getAllEvents = async (req, res) => {
+  try {
+    const events = await Event.find().sort({ date: 1 });
+    res.status(200).json({ events });
+  } catch (error) {
+    console.error("Error fetching events:", error);
+    res.status(500).json({ message: "Failed to fetch events." });
+  }
+};
+
 const rsvpToEvent = async (req, res) => {
   try {
     const { eventId } = req.params;
     const { isAnonymous } = req.body;
-    const userId = req.user._id;
+    const userId = req.user?.id || req.user?._id;
 
     const event = await Event.findById(eventId);
     if (!event) {
       return res.status(404).json({ message: "Event not found." });
     }
 
-    // Count current confirmed RSVPs
     const confirmedCount = await Registration.countDocuments({
       event: eventId,
       status: "confirmed",
@@ -26,18 +35,15 @@ const rsvpToEvent = async (req, res) => {
       return res.status(400).json({ message: "Event is fully booked." });
     }
 
-    // Prevent duplicate RSVP (non-anonymous users only)
-    if (!isAnonymous) {
-      const alreadyRegistered = await Registration.findOne({
-        event: eventId,
-        user: userId,
-      });
+    const userRSVP = await Registration.findOne({
+      event: eventId,
+      $or: [{ user: userId }, { isAnonymous: true, realUserId: userId }],
+    });
 
-      if (alreadyRegistered) {
-        return res
-          .status(400)
-          .json({ message: "You already RSVPed for this event." });
-      }
+    if (userRSVP) {
+      return res.status(400).json({
+        message: `You have already RSVPed for this event.`,
+      });
     }
 
     const registrationData = {
@@ -48,6 +54,7 @@ const rsvpToEvent = async (req, res) => {
 
     if (isAnonymous) {
       registrationData.anonymousName = generateAnonymousName();
+      registrationData.realUserId = userId;
     } else {
       registrationData.user = userId;
     }
@@ -55,7 +62,7 @@ const rsvpToEvent = async (req, res) => {
     const registration = await Registration.create(registrationData);
 
     return res.status(201).json({
-      message: "RSVP successful.",
+      message: `RSVP successful${isAnonymous ? " (anonymous)" : ""}.`,
       registration,
       seatsLeft: event.seatsAvailable - (confirmedCount + 1),
     });
@@ -130,6 +137,7 @@ const getMyEvents = async (req, res) => {
 };
 
 module.exports = {
+  getAllEvents,
   rsvpToEvent,
   searchEvents,
   getMyEvents,
