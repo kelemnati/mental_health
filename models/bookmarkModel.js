@@ -15,11 +15,10 @@ const bookmarkSchema = new mongoose.Schema(
     },
   },
   {
-    timestamps: true, // adds createdAt and updatedAt
+    timestamps: true,
   }
 );
 
-// Prevent duplicate bookmarks
 bookmarkSchema.index({ user: 1, event: 1 }, { unique: true });
 
 module.exports = mongoose.model("Bookmark", bookmarkSchema);

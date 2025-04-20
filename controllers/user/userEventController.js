@@ -74,38 +74,83 @@ const rsvpToEvent = async (req, res) => {
 
 const searchEvents = async (req, res) => {
   try {
-    const { title, category, location, isVirtual, from, to } = req.query;
+    const {
+      title,
+      category,
+      location,
+      isVirtual,
+      from,
+      to,
+      eventType,
+      eventId,
+    } = req.query;
 
     const query = {};
+    const filtersUsed = [];
+
+    if (eventId) {
+      query._id = eventId;
+      filtersUsed.push(`event ID "${eventId}"`);
+    }
 
     if (title) {
       query.title = { $regex: title, $options: "i" };
+      filtersUsed.push(`title "${title}"`);
     }
 
     if (category) {
       query.categories = category;
+      filtersUsed.push(`category "${category}"`);
     }
 
     if (location) {
       query.location = { $regex: location, $options: "i" };
+      filtersUsed.push(`location "${location}"`);
     }
 
     if (isVirtual !== undefined) {
-      query.isVirtual = isVirtual === "true";
+      const isVirtualBool = isVirtual === "true";
+      query.isVirtual = isVirtualBool;
+      filtersUsed.push(isVirtualBool ? "virtual events" : "in-person events");
     }
 
     if (from || to) {
       query.date = {};
-      if (from) query.date.$gte = new Date(from);
-      if (to) query.date.$lte = new Date(to);
+      if (from) {
+        query.date.$gte = new Date(from);
+        filtersUsed.push(`from date "${from}"`);
+      }
+      if (to) {
+        query.date.$lte = new Date(to);
+        filtersUsed.push(`to date "${to}"`);
+      }
+    }
+
+    if (eventType) {
+      query.eventType = eventType;
+      filtersUsed.push(`event type "${eventType}"`);
     }
 
     const events = await Event.find(query).sort({ date: 1 });
 
+    if (events.length === 0) {
+      const message =
+        filtersUsed.length > 0
+          ? `No events found with the following criteria: ${filtersUsed.join(
+              ", "
+            )}.`
+          : "No events found.";
+
+      return res.status(404).json({
+        message,
+        filtersUsed: req.query,
+      });
+    }
+
     res.status(200).json({ events });
   } catch (error) {
-    console.error("Search Error:", error);
-    res.status(500).json({ message: "Failed to search events." });
+    console.error("Event Search Error:", error);
+    res.status(500).json({ message: "Error while searching events." });
   }
 };
 
