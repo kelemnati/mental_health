@@ -160,7 +160,7 @@ const getMyEvents = async (req, res) => {
     const now = new Date();
 
     const registrations = await Registration.find({
-      user: userId,
+      $or: [{ user: userId }, { realUserId: userId }],
       status: "confirmed",
     }).populate("event");
 
@@ -173,7 +173,6 @@ const getMyEvents = async (req, res) => {
         isUpcoming ? upcoming.push(reg.event) : past.push(reg.event);
       }
     });
-
     res.status(200).json({ upcoming, past });
   } catch (error) {
     console.error("Error fetching my events:", error);
