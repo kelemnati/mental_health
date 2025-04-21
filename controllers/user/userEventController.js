@@ -72,6 +72,32 @@ const rsvpToEvent = async (req, res) => {
   }
 };
 
+const cancelRSVP = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+    const userId = req.user?.id || req.user?._id;
+
+    const registration = await Registration.findOneAndDelete({
+      event: eventId,
+      $or: [{ user: userId }, { realUserId: userId }],
+      status: "confirmed",
+    });
+
+    if (!registration) {
+      return res.status(404).json({
+        message: "No active RSVP found for this event to cancel.",
+      });
+    }
+
+    return res.status(200).json({
+      message: "Your RSVP has been successfully cancelled.",
+    });
+  } catch (error) {
+    console.error("Cancel RSVP Error:", error);
+    res.status(500).json({ message: "Error while cancelling RSVP." });
+  }
+};
+
 const searchEvents = async (req, res) => {
   try {
     const {
@@ -183,6 +209,7 @@ const getMyEvents = async (req, res) => {
 module.exports = {
   getAllEvents,
   rsvpToEvent,
+  cancelRSVP,
   searchEvents,
   getMyEvents,
 };
