@@ -7,7 +7,6 @@ const submitFeedback = async (req, res) => {
     const userId = req.user._id;
     const { rating, comment } = req.body;
 
-    // Ensure user has RSVPed to this event
     const registered = await Registration.findOne({
       user: userId,
       event: eventId,
@@ -20,7 +19,6 @@ const submitFeedback = async (req, res) => {
         .json({ message: "You must RSVP to leave feedback." });
     }
 
-    // Check if already left feedback
     const existing = await Feedback.findOne({ user: userId, event: eventId });
     if (existing) {
       return res.status(400).json({ message: "Feedback already submitted." });
@@ -42,7 +40,6 @@ const submitFeedback = async (req, res) => {
   }
 };
 
-// Get feedback for an event
 const getEventFeedback = async (req, res) => {
   try {
     const { eventId } = req.params;

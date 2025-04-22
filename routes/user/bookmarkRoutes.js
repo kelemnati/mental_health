@@ -7,7 +7,7 @@ const {
   getUserBookmarks,
 } = require("../../controllers/user/bookmarkController");
 
-router.post("/", verifyToken, addBookmark);
+router.post("/:eventId", verifyToken, addBookmark);
 router.delete("/:eventId", verifyToken, removeBookmark);
 router.get("/", verifyToken, getUserBookmarks);
 

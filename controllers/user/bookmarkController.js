@@ -2,10 +2,9 @@ const Bookmark = require("../../models/bookmarkModel");
 
 const addBookmark = async (req, res) => {
   try {
-    const userId = req.user._id;
-    const { eventId } = req.body;
+    const userId = req.user.id || req.user._id;
+    const { eventId } = req.params;
 
-    // Prevent duplicate bookmarks
     const existing = await Bookmark.findOne({ user: userId, event: eventId });
     if (existing) {
       return res.status(400).json({ message: "Event already bookmarked." });
@@ -21,7 +20,7 @@ const addBookmark = async (req, res) => {
 
 const removeBookmark = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.id || req.user._id;
     const { eventId } = req.params;
 
     const removed = await Bookmark.findOneAndDelete({
@@ -41,7 +40,7 @@ const removeBookmark = async (req, res) => {
 
 const getUserBookmarks = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.id || req.user._id;
 
     const bookmarks = await Bookmark.find({ user: userId }).populate("event");
     res.status(200).json({ bookmarks });
