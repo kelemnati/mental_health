@@ -11,22 +11,26 @@ const getRSVPedUsers = async (req, res) => {
       events.map(async (event) => {
         const registrations = await Registration.find({
           event: event._id,
-        }).populate("user", "fullName email");
+        }).populate("user", "username email");
 
-        const users = registrations.map((reg) =>
-          reg.isAnonymous
-            ? { anonymousName: reg.anonymousName }
-            : {
-                fullName: reg.user.fullName,
-                email: reg.user.email,
-              }
-        );
+        const rsvpedUsers = registrations.map((reg) => {
+          if (reg.isAnonymous) {
+            return {
+              anonymousName: reg.anonymousName,
+            };
+          } else {
+            return {
+              username: reg.user.username,
+              email: reg.user.email,
+            };
+          }
+        });
 
         return {
           eventTitle: event.title,
           totalRSVPs: registrations.length,
           availableSeats: event.seatsAvailable,
-          rsvpedUsers: users,
+          rsvpedUsers,
         };
       })
     );
@@ -44,7 +48,7 @@ const getBookmarkedUsers = async (req, res) => {
   try {
     const bookmarks = await Bookmark.find()
       .populate("event")
-      .populate("user", "fullName email");
+      .populate("user", "username email");
 
     const filtered = bookmarks.filter(
       (b) => b.event.createdBy.toString() === req.user.id
@@ -53,7 +57,7 @@ const getBookmarkedUsers = async (req, res) => {
     const formatted = filtered.map((b) => ({
       eventTitle: b.event.title,
       user: {
-        fullName: b.user.fullName,
+        username: b.user.username,
         email: b.user.email,
       },
     }));
@@ -87,7 +91,7 @@ const getUsersFeedbacks = async (req, res) => {
     const eventIds = adminEvents.map((event) => event._id);
 
     const feedbacks = await Feedback.find({ event: { $in: eventIds } })
-      .populate("user", "fullName email")
+      .populate("user", "username email")
       .populate("event", "title date")
       .sort({ createdAt: -1 });
 
@@ -95,8 +99,7 @@ const getUsersFeedbacks = async (req, res) => {
     const result = feedbacks.map((fb) => ({
       eventTitle: fb.event?.title,
       eventDate: fb.event?.date,
-      user: fb.isAnonymous ? fb.anonymousName : fb.user?.fullName,
-      email: fb.isAnonymous ? undefined : fb.user?.email,
+      user: fb.isAnonymous ? fb.anonymousName : fb.user?.username,
       comment: fb.comment,
       rating: fb.rating,
       submittedAt: fb.createdAt,

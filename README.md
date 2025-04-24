@@ -69,28 +69,39 @@ npm install
 ## 📂 Folder Structure
 
 ```
+
+mental_health/
 ├── config/
-│   └── db_connect.js
+│ └── db_connect.js
 ├── controllers/
-│   ├── admin/
-│   │   ├── authController.js
-│   │   └── eventController.js
-│   └── user/
-│       └── userAuthController.js
+│ ├── admin/
+│ │ ├── adminEventController.js
+│ │ └── ... (other admin controllers)
+│ └── ... (other controllers)
 ├── middlewares/
-│   └── authMiddleware.js
+│ ├── authMiddleware.js
+│ └── ... (other middlewares)
 ├── models/
-│   ├── eventModel.js
-│   └── userModel.js
+│ ├── eventModel.js
+│ ├── registrationModel.js
+│ ├── userModel.js
+│ ├── bookmarkModel.js
+│ └── ... (other models)
 ├── routes/
-│   ├── admin/
-│   │   ├── adminAuthRoutes.js
-│   │   └── eventRoutes.js
-│   └── user/
-│       └── userAuthRoutes.js
+│ ├── admin/
+│ │ ├── eventRoutes.js
+│ │ └── ... (other admin routes)
+│ └── ... (other routes)
+├── utils/
+│ ├── dateFormatter.js
+│ ├── emailSender.js
+│ └── ... (other utility files)
 ├── .env
-├── server.js
-└── README.md
+├── index.js
+├── package.json
+├── README.md
+└── ... (other files)
+
 ```
 
 ---
@@ -104,3 +115,7 @@ Feel free to open issues or pull requests to improve the platform!
 ## 📜 License
 
 MIT License © 2025 Nathnael Keleme Kana
+
+```
+
+```

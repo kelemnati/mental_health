@@ -26,15 +26,6 @@ const rsvpToEvent = async (req, res) => {
       return res.status(404).json({ message: "Event not found." });
     }
 
-    const confirmedCount = await Registration.countDocuments({
-      event: eventId,
-      status: "confirmed",
-    });
-
-    if (confirmedCount >= event.seatsAvailable) {
-      return res.status(400).json({ message: "Event is fully booked." });
-    }
-
     const userRSVP = await Registration.findOne({
       event: eventId,
       $or: [{ user: userId }, { isAnonymous: true, realUserId: userId }],
@@ -44,6 +35,15 @@ const rsvpToEvent = async (req, res) => {
       return res.status(400).json({
         message: `You have already RSVPed for this event.`,
       });
+    }
+
+    const confirmedCount = await Registration.countDocuments({
+      event: eventId,
+      status: "confirmed",
+    });
+
+    if (confirmedCount >= event.seatsAvailable) {
+      return res.status(400).json({ message: "Event is fully booked." });
     }
 
     const registrationData = {
