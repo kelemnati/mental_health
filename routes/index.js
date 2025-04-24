@@ -4,6 +4,10 @@ const router = express.Router();
 // Admin routes
 router.use("/admin/auth", require("./admin/adminAuthRoutes"));
 router.use("/admin/events", require("./admin/eventRoutes"));
+router.use(
+  "/admin/event-insights",
+  require("./admin/adminEventOverviewRoutes.js")
+);
 
 // User routes
 router.use("/user/auth", require("./user/userAuthRoutes"));

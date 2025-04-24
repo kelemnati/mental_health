@@ -61,10 +61,13 @@ const rsvpToEvent = async (req, res) => {
 
     const registration = await Registration.create(registrationData);
 
+    event.seatsAvailable -= 1;
+    await event.save();
+
     return res.status(201).json({
       message: `RSVP successful${isAnonymous ? " (anonymous)" : ""}.`,
       registration,
-      seatsLeft: event.seatsAvailable - (confirmedCount + 1),
+      seatsLeft: event.seatsAvailable,
     });
   } catch (error) {
     console.error("RSVP Error:", error);
@@ -87,6 +90,11 @@ const cancelRSVP = async (req, res) => {
       return res.status(404).json({
         message: "No active RSVP found for this event to cancel.",
       });
+    }
+    const event = await Event.findById(eventId);
+    if (event) {
+      event.seatsAvailable += 1;
+      await event.save();
     }
 
     return res.status(200).json({

@@ -11,10 +11,10 @@ app.use(express.json());
 // Routes
 app.use("/api/v1", require("./routes"));
 
-app.all("*", (req, res, next) => {
-  next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
-});
+// app.all("*", (req, res, next) => {
+//   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+// });
 
-app.use(errorHandler);
+// app.use(errorHandler);
 
 module.exports = app;

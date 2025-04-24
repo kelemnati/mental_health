@@ -1,7 +1,6 @@
 const Event = require("../../models/eventModel");
 
 const createEvent = async (req, res) => {
-  console.log("reached");
   try {
     const event = new Event({ ...req.body, createdBy: req.user.id });
     await event.save();
