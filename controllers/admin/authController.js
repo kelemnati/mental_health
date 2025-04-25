@@ -11,7 +11,7 @@ const register = async (req, res) => {
       username,
       email,
       password: hashedPassword,
-      role: "admin", // hard-coded role from admin route
+      role: "admin",
     });
 
     await newUser.save();

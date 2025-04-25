@@ -13,7 +13,7 @@ const createEvent = async (req, res) => {
 
 const getAllEvents = async (req, res) => {
   try {
-    const adminId = req.user.id; // from the token (decoded earlier)
+    const adminId = req.user.id;
 
     const events = await Event.find({ createdBy: adminId });
 
@@ -61,22 +61,18 @@ const deleteEvent = async (req, res) => {
     const adminId = req.user.id;
     const eventId = req.params.id;
 
-    // 1. Find the event
     const event = await Event.findById(eventId);
 
-    // 2. If event not found
     if (!event) {
       return res.status(404).json({ message: "Event not found" });
     }
 
-    // 3. Check if the event belongs to the logged-in admin
     if (event.createdBy.toString() !== adminId) {
       return res
         .status(403)
         .json({ message: "You are not authorized to delete this event" });
     }
 
-    // 4. Delete the event
     await Event.findByIdAndDelete(eventId);
 
     res.status(200).json({ message: "Event deleted successfully" });

@@ -1,17 +1,21 @@
 const Feedback = require("../../models/feedbackModel");
 const Registration = require("../../models/registrationModel");
 
+const getUserRegistration = async (eventId, userId) => {
+  return await Registration.findOne({
+    event: eventId,
+    status: "confirmed",
+    $or: [{ user: userId }, { realUserId: userId }],
+  });
+};
+
 const submitFeedback = async (req, res) => {
   try {
     const { eventId } = req.params;
     const userId = req.user.id || req.user._id;
     const { rating, comment } = req.body;
 
-    const registration = await Registration.findOne({
-      event: eventId,
-      status: "confirmed",
-      $or: [{ user: userId }, { realUserId: userId }],
-    });
+    const registration = await getUserRegistration(eventId, userId);
 
     if (!registration) {
       return res.status(403).json({
@@ -20,6 +24,12 @@ const submitFeedback = async (req, res) => {
     }
 
     let existingFeedback;
+    let feedbackData = {
+      event: eventId,
+      rating,
+      comment,
+    };
+
     if (registration.isAnonymous) {
       existingFeedback = await Feedback.findOne({
         event: eventId,
@@ -32,17 +42,7 @@ const submitFeedback = async (req, res) => {
         });
       }
 
-      const feedback = await Feedback.create({
-        event: eventId,
-        anonymousName: registration.anonymousName,
-        rating,
-        comment,
-      });
-
-      return res.status(201).json({
-        message: "Anonymous feedback submitted.",
-        feedback,
-      });
+      feedbackData.anonymousName = registration.anonymousName;
     } else {
       existingFeedback = await Feedback.findOne({
         event: eventId,
@@ -55,18 +55,15 @@ const submitFeedback = async (req, res) => {
         });
       }
 
-      const feedback = await Feedback.create({
-        event: eventId,
-        user: userId,
-        rating,
-        comment,
-      });
-
-      return res.status(201).json({
-        message: "Feedback submitted.",
-        feedback,
-      });
+      feedbackData.user = userId;
     }
+
+    const feedback = await Feedback.create(feedbackData);
+
+    res.status(201).json({
+      message: "Feedback submitted successfully.",
+      feedback,
+    });
   } catch (error) {
     console.error("Feedback Error:", error);
     res.status(500).json({
@@ -80,7 +77,7 @@ const getEventFeedback = async (req, res) => {
     const { eventId } = req.params;
     const feedbacks = await Feedback.find({ event: eventId }).populate(
       "user",
-      "fullName"
+      "username"
     );
     res.status(200).json({ feedbacks });
   } catch (error) {

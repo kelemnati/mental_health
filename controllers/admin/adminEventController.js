@@ -1,7 +1,7 @@
 const Event = require("../../models/eventModel");
 const Registration = require("../../models/registrationModel");
-const User = require("../../models/userModel");
 const Bookmark = require("../../models/bookmarkModel");
+const Feedback = require("../../models/feedbackModel");
 
 const getRSVPedUsers = async (req, res) => {
   try {
@@ -75,7 +75,7 @@ const getBookmarkedUsers = async (req, res) => {
 
 const getUsersFeedbacks = async (req, res) => {
   try {
-    const adminId = req.user._id;
+    const adminId = req.user._id || req.user.id;
 
     const adminEvents = await Event.find(
       { createdBy: adminId },
@@ -95,11 +95,10 @@ const getUsersFeedbacks = async (req, res) => {
       .populate("event", "title date")
       .sort({ createdAt: -1 });
 
-    // Step 3: Format results
     const result = feedbacks.map((fb) => ({
       eventTitle: fb.event?.title,
       eventDate: fb.event?.date,
-      user: fb.isAnonymous ? fb.anonymousName : fb.user?.username,
+      user: fb.user ? fb.user.username : fb.anonymousName,
       comment: fb.comment,
       rating: fb.rating,
       submittedAt: fb.createdAt,
